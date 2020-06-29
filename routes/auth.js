@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
-const { registerValidation } = require('../validation');
+const User = require('../models/User');
+const { registerValidation, loginValidation } = require('../validation');
 
 // @desc    Register
 // @route   POST /register
@@ -47,8 +48,36 @@ router.post('/register', async (req, res) => {
 
 // @desc    Login
 // @route   POST /login
-router.post('/login', (req, res) => {
-    
+router.post('/login', async (req, res) => {
+
+    // Validate form
+    const { error } = loginValidation(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    // find user
+    const user = await User.findOne({ email: req.body.email });
+
+    // Send error if user is not found
+    if(!user) return res.status(400).send("User not found");
+
+    // compare passwords
+    const validPass = await bcrypt.compare(req.body.password, user.password);
+
+    // Send error if password is incorrect
+    if(!validPass) return res.status(400).send("Username or password is incorrect");
+
+    // Create token
+    const token = jwt.sign({_id: user._id}, process.env.SECRET_KEY);
+
+    // Send token in the header
+    res.header('auth-token', token);
+
+    // Success message
+    res.json({
+        message: 'Logged in successfully',
+        token: token
+    });
+
 });
 
 module.exports = router;
