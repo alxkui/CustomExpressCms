@@ -4,19 +4,17 @@ const PostSchema = new mongoose.Schema({
     title: {
         required: true,
         type: String,
-        trim: true,
     },
 
     slug: {
-        required: true,
         type: String,
-        trim: true,
     },
 
     status: {
-        required: true,
+        type: String,
         default: 'public',
-        enum: ['public', 'private']
+        enum: ['public', 'private'],
+        required: true,
     },
 
     user: {
@@ -30,4 +28,4 @@ const PostSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Post', StorySchema);
+module.exports = mongoose.model('Post', PostSchema);
